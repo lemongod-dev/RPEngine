@@ -21,6 +21,7 @@ import com.Alvaeron.commands.RPEngineCommand;
 import com.Alvaeron.commands.RollCommand;
 import com.Alvaeron.commands.SpawnPointCommand;
 import com.Alvaeron.listeners.EventListener;
+import com.Alvaeron.nametags.NametagManager;
 import com.Alvaeron.player.PlayerManager;
 import com.Alvaeron.utils.Card;
 import com.Alvaeron.utils.Lang;
@@ -38,6 +39,7 @@ public class Engine extends JavaPlugin {
 	public static PlayerManager manager = null;
 	public static Card card = null;
 	public static Engine rpEngine = null;
+	public static NametagManager nametags = null;
 	public static YamlConfiguration LANG;
 	public static File LANG_FILE;
 
@@ -60,6 +62,7 @@ public class Engine extends JavaPlugin {
 		manager = new PlayerManager(this);
 		card = new Card(this);
 		rpEngine = this;
+		nametags = new NametagManager(this);
 
 		this.getServer().getPluginManager().registerEvents(manager, this);
 		this.getServer().getPluginManager().registerEvents(Engine.listener, this);
@@ -180,7 +183,11 @@ public class Engine extends JavaPlugin {
 			e.printStackTrace();
 		}
 	}
-
+	public void debug(String message) {
+        if (this.getConfig().getBoolean("debug")) {
+            getLogger().info("[DEBUG] " + message);
+        }
+	}
 	private void checkSoftDependencies() {
 		// Vault
 		if (!setupEconomy()) {

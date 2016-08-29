@@ -10,7 +10,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.Alvaeron.Engine;
-import com.Alvaeron.nametags.NametagManager;
 
 public class PlayerManager implements Listener {
 	public Engine plugin;
@@ -32,7 +31,7 @@ public class PlayerManager implements Listener {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		clearPlayer(event.getPlayer().getUniqueId());
-		NametagManager.clear(event.getPlayer().getName());
+		Engine.nametags.reset(event.getPlayer().getName());
 	}
 
 	public void clearPlayer(UUID u) {
@@ -49,8 +48,8 @@ public class PlayerManager implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-        NametagManager.sendTeamsToPlayer(player);
-        NametagManager.clear(player.getName());
+        Engine.nametags.sendTeams(player);
+        Engine.nametags.reset(player.getName());
 		Engine.mm.createRoleplayPlayer(player);
 	}
 }

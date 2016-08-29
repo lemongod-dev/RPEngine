@@ -5,6 +5,9 @@ password: password
 database: minecraft
 port: 3306
 
+#Debug
+debug: false
+
 #ChatSettings
 rpRange: 35
 whisperRange: 5

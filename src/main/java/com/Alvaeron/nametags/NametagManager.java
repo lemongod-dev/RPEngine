@@ -1,431 +1,183 @@
 package com.Alvaeron.nametags;
 
+import com.Alvaeron.Engine;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
-/**
- * This class dynamically creates teams with numerical names and certain
- * prefixes/suffixes (it ignores teams with other characters) to assign unique
- * prefixes and suffixes to specific players in the game. This class makes edits
- * to the <b>scoreboard.dat</b> file, adding and removing teams on the fly.
- *
- * @author Levi Webb
- */
+@AllArgsConstructor
 public class NametagManager {
 
-    // Prefix to append to all team names (nothing to do with prefix/suffix)
-    private static final String TEAM_NAME_PREFIX = "NTE";
+    private final HashMap<String, FakeTeam> TEAMS = new HashMap<>();
+    private final HashMap<String, FakeTeam> CACHED_FAKE_TEAMS = new HashMap<>();
+    private Engine plugin;
 
-    private static final List<Integer> LIST = new ArrayList<Integer>();
-
-    private static final HashMap<TeamHandler, List<String>> TEAMS = new HashMap<TeamHandler, List<String>>();
-
-    // Workaround for the deprecated getOnlinePlayers()
-    public static List<Player> getOnline() {
-        List<Player> list = new ArrayList<Player>();
-
-        for (World world : Bukkit.getWorlds()) {
-            list.addAll(world.getPlayers());
-        }
-
-        return Collections.unmodifiableList(list);
+    /**
+     * This is a special method to sort nametags in
+     * the tablist. It takes a priority and converts
+     * it to an alphabetic representation to force a
+     * specific sort.
+     *
+     * @param input the sort priority
+     * @return the team name
+     */
+    private String getNameFromInput(int input) {
+        if (input < 0) return null;
+        String letter = String.valueOf((char) ((input / 13) + 65));
+        int repeat = input % 13 + 1;
+        return StringUtils.repeat(letter, repeat);
     }
 
-    private static void register(TeamHandler team) {
-        TEAMS.put(team, new ArrayList<String>());
-        sendPacketsAddTeam(team);
-    }
-
-    private static void removeTeam(TeamHandler team) {
-        sendPacketsRemoveTeam(team);
-        TEAMS.remove(team);
-    }
-
-    private static Collection<TeamHandler> getTeams() {
-        return TEAMS.keySet();
-    }
-
-    public static void clear(String playerName) {
-        removeFromTeam(playerName);
-    }
-
-    private static List<String> getTeamPlayers(TeamHandler team) {
-        List<String> list = TEAMS.get(team);
-        return list == null ? new ArrayList<String>() : list;
-    }
-
-    private static TeamHandler getTeam(String teamName) {
-        for (TeamHandler team : TEAMS.keySet()) {
-            if (team.getName().equals(teamName)) {
-                return team;
+    /**
+     * Gets the current team given a prefix and suffix
+     * If there is no team similar to this, then a new
+     * team is created.
+     */
+    private FakeTeam getFakeTeam(String prefix, String suffix) {
+        for (FakeTeam fakeTeam : TEAMS.values()) {
+            if (fakeTeam.isSimilar(prefix, suffix)) {
+                return fakeTeam;
             }
         }
+
         return null;
+    }
+
+    /**
+     * Adds a player to a FakeTeam. If they are already on this team,
+     * we do NOT change that.
+     */
+    @SuppressWarnings("deprecation")
+	private void addPlayerToTeam(String player, String prefix, String suffix, int sortPriority) {
+        FakeTeam previous = getFakeTeam(player);
+
+        if (previous != null && previous.isSimilar(prefix, suffix)) {
+            plugin.debug(player + " already belongs to a similar team (" + previous.getName() + ")");
+            return;
+        }
+
+        reset(player);
+
+        FakeTeam joining = getFakeTeam(prefix, suffix);
+        if (joining != null) {
+            joining.addMember(player);
+            plugin.debug("Using existing team for " + player);
+        } else {
+            joining = new FakeTeam(prefix, suffix, getNameFromInput(sortPriority));
+            joining.addMember(player);
+            TEAMS.put(joining.getName(), joining);
+            addTeamPackets(joining);
+            plugin.debug("Created FakeTeam " + joining.getName() + ". Size: " + TEAMS.size());
+        }
+
+        Player adding = Bukkit.getPlayerExact(player);
+        if (adding != null) {
+            addPlayerToTeamPackets(joining, adding.getName());
+            cache(adding.getName(), joining);
+        } else {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(player);
+            addPlayerToTeamPackets(joining, offlinePlayer.getName());
+            cache(offlinePlayer.getName(), joining);
+        }
+
+        plugin.debug(player + " has been added to team " + joining.getName());
+    }
+
+    public FakeTeam reset(String player) {
+        return reset(player, decache(player));
     }
 
     @SuppressWarnings("deprecation")
-	private static void addToTeam(TeamHandler team, String playerName) {
-        removeFromTeam(playerName);
-        List<String> list = TEAMS.get(team);
-
-        if (list != null) {
-            list.add(playerName);
-            Player toAdd = Bukkit.getPlayerExact(playerName);
-
-            if (toAdd != null) {
-                sendPacketsAddToTeam(team, toAdd.getName());
+	private FakeTeam reset(String player, FakeTeam fakeTeam) {
+        if (fakeTeam != null && fakeTeam.getMembers().remove(player)) {
+            boolean delete;
+            Player removing = Bukkit.getPlayerExact(player);
+            if (removing != null) {
+                delete = removePlayerFromTeamPackets(fakeTeam, removing.getName());
             } else {
-                OfflinePlayer toAddOffline = Bukkit.getOfflinePlayer(playerName);
-                sendPacketsAddToTeam(team, toAddOffline.getName());
-            }
-        }
-    }
-
-    private static TeamHandler removeFromTeam(String playerName) {
-        for (Map.Entry<TeamHandler, List<String>> entry : TEAMS.entrySet()) {
-            TeamHandler team = entry.getKey();
-            Iterator<String> list = entry.getValue().iterator();
-
-            while (list.hasNext()) {
-                String temp = list.next();
-
-                if (temp.equals(playerName)) {
-                    Player toRemove = Bukkit.getPlayerExact(playerName);
-
-                    if (toRemove != null) {
-                        sendPacketsRemoveFromTeam(team, toRemove.getName());
-                    } else {
-                        @SuppressWarnings("deprecation")
-						OfflinePlayer toRemoveOffline = Bukkit.getOfflinePlayer(temp);
-                        sendPacketsRemoveFromTeam(team, toRemoveOffline.getName());
-                    }
-
-                    list.remove();
-                    return team;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Retrieves the player's entire name with both the prefix and suffix.
-     *
-     * @param player the specified player
-     * @return the entire nametag
-     */
-    public static String getFormattedName(String player) {
-        return getPrefix(player) + player + getSuffix(player);
-    }
-
-    /**
-     * Initializes this class and loads current teams that are manipulated by
-     * this plugin.
-     */
-    public static void load() {
-        for (TeamHandler team : getTeams()) {
-            int entry = -1;
-
-            try {
-                entry = Integer.parseInt(team.getName());
-            } catch (NumberFormatException e) {
-                // We're ignoring this. I don't know why.
+                OfflinePlayer toRemoveOffline = Bukkit.getOfflinePlayer(player);
+                delete = removePlayerFromTeamPackets(fakeTeam, toRemoveOffline.getName());
             }
 
-            if (entry != -1) {
-                LIST.add(entry);
+            plugin.debug(player + " was removed from " + fakeTeam.getName());
+            if (delete) {
+                removeTeamPackets(fakeTeam);
+                TEAMS.remove(fakeTeam.getName());
+                plugin.debug("FakeTeam " + fakeTeam.getName() + " has been deleted. Size: " + TEAMS.size());
             }
         }
+
+        return fakeTeam;
     }
 
-    /**
-     * Updates a player's prefix and suffix in the scoreboard and above their
-     * head.<br>
-     * <br>
-     * <p/>
-     * If either the prefix or suffix is null or empty, it will be replaced with
-     * the current prefix/suffix
-     *
-     * @param player the specified player
-     * @param prefix the prefix to set for the given player
-     * @param suffix the suffix to set for the given player
-     */
-    public static void update(String player, String prefix, String suffix) {
-        if (prefix == null || prefix.isEmpty()) {
-            prefix = getPrefix(player);
-        }
-
-        if (suffix == null || suffix.isEmpty()) {
-            suffix = getSuffix(player);
-        }
-
-        addToTeam(getTeamHandler(prefix, suffix), player);
+    // ==============================================================
+    // Below are public methods to modify the cache
+    // ==============================================================
+    private FakeTeam decache(String player) {
+        return CACHED_FAKE_TEAMS.remove(player);
     }
 
-    /**
-     * Updates a player's prefix and suffix in the scoreboard and above their
-     * head.<br>
-     * <br>
-     * <p/>
-     * If either the prefix or suffix is null or empty, it will be removed from
-     * the player's nametag.
-     *
-     * @param player the specified player
-     * @param prefix the prefix to set for the given player
-     * @param suffix the suffix to set for the given player
-     */
-    public static void overlap(String player, String prefix, String suffix) {
-        if (prefix == null) {
-            prefix = "";
-        }
-
-        if (suffix == null) {
-            suffix = "";
-        }
-
-        addToTeam(getTeamHandler(prefix, suffix), player);
+    public FakeTeam getFakeTeam(String player) {
+        return CACHED_FAKE_TEAMS.get(player);
     }
 
-    /**
-     * Retrieves a player's prefix
-     *
-     * @param player the specified player
-     * @return the player's prefix
-     */
-    public static String getPrefix(String player) {
-        for (Map.Entry<TeamHandler, List<String>> entry : TEAMS.entrySet()) {
-            for (String member : entry.getValue()) {
-                if (member.equals(player)) {
-                    return entry.getKey().getPrefix();
-                }
-            }
-        }
-        return "";
+    private void cache(String player, FakeTeam fakeTeam) {
+        CACHED_FAKE_TEAMS.put(player, fakeTeam);
     }
 
-    /**
-     * Retrieves a player's suffix
-     *
-     * @param player the specified player
-     * @return the player's suffix
-     */
-    public static String getSuffix(String player) {
-        for (Map.Entry<TeamHandler, List<String>> entry : TEAMS.entrySet()) {
-            for (String member : entry.getValue()) {
-                if (member.equals(player)) {
-                    return entry.getKey().getSuffix();
-                }
-            }
-        }
-        return "";
+    // ==============================================================
+    // Below are public methods to modify certain data
+    // ==============================================================
+    public void setNametag(String player, String prefix, String suffix) {
+        setNametag(player, prefix, suffix, -1);
     }
 
-    /**
-     * Declares a new team in the scoreboard.dat of the given main world.
-     *
-     * @param name   the team name
-     * @param prefix the team's prefix
-     * @param suffix the team's suffix
-     * @return the created team
-     */
-    private static TeamHandler declareTeam(String name, String prefix, String suffix) {
-        removeTeam(getTeam(name));
-
-        TeamHandler team = new TeamHandler(name);
-        team.setPrefix(prefix);
-        team.setSuffix(suffix);
-        register(team);
-
-        return team;
+    void setNametag(String player, String prefix, String suffix, int sortPriority) {
+        addPlayerToTeam(player, prefix != null ? prefix : "", suffix != null ? suffix : "", sortPriority);
     }
 
-    /**
-     * Gets the ScoreboardTeam for the
-     * given prefix and suffix, and if none matches, creates a new team with the
-     * provided info. This also removes teams that currently have no players.
-     *
-     * @param prefix the team's prefix
-     * @param suffix the team's suffix
-     * @return a team with the corresponding prefix/suffix
-     */
-    private static TeamHandler getTeamHandler(String prefix, String suffix) {
-        update();
-
-        for (int index : LIST) {
-            TeamHandler team = getTeam(TEAM_NAME_PREFIX + index);
-
-            if (team != null) {
-                if (team.getSuffix().equalsIgnoreCase(suffix) && team.getPrefix().equals(prefix)) {
-                    return team;
-                }
-            }
-        }
-        return declareTeam(TEAM_NAME_PREFIX + nextName(), prefix, suffix);
-    }
-
-    /**
-     * Returns the next available team name that is not taken.
-     *
-     * @return an integer that for a team name that is not taken.
-     */
-    private static int nextName() {
-        int index = 0;
-
-        while (LIST.contains(index)) {
-            index++;
-        }
-
-        LIST.add(index);
-        return index;
-    }
-
-    /**
-     * Removes any teams that do not have any players in them.
-     */
-    private static void update() {
-        for (Map.Entry<TeamHandler, List<String>> entry : TEAMS.entrySet()) {
-            TeamHandler team = entry.getKey();
-            List<String> members = entry.getValue();
-
-            int id;
-
-            try {
-                id = Integer.parseInt(team.getName());
-            } catch (NumberFormatException e) {
-                continue; // Dead team?
-            }
-
-            if (id != -1) {
-                if (members.isEmpty()) {
-                    removeTeam(team);
-                    LIST.remove(id);
-                }
-            }
+    public void sendTeams(Player player) {
+        for (FakeTeam fakeTeam : TEAMS.values()) {
+            new PacketWrapper(fakeTeam.getName(), fakeTeam.getPrefix(), fakeTeam.getSuffix(), 0, fakeTeam.getMembers()).send(player);
         }
     }
 
-    /**
-     * Sends the current team setup and their players to the given player. This
-     * should be called when players join the server.
-     *
-     * @param p The player to send the packets to.
-     */
-    public static void sendTeamsToPlayer(Player p) {
-        try {
-            for (TeamHandler team : getTeams()) {
-                PacketHandler mod = new PacketHandler(team.getName(), team.getPrefix(), team.getSuffix(), new ArrayList<String>(), 0);
-                mod.sendToPlayer(p);
-                mod = new PacketHandler(team.getName(), getTeamPlayers(team), 3);
-                mod.sendToPlayer(p);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    void reset() {
+        for (FakeTeam fakeTeam : TEAMS.values()) {
+            removePlayerFromTeamPackets(fakeTeam, fakeTeam.getMembers());
+            removeTeamPackets(fakeTeam);
         }
+        CACHED_FAKE_TEAMS.clear();
+        TEAMS.clear();
     }
 
-    /**
-     * Sends packets out to players to add the given team
-     *
-     * @param team the team to add
-     */
-    private static void sendPacketsAddTeam(TeamHandler team) {
-        try {
-            for (Player p : getOnline()) {
-                if (p != null) {
-                    PacketHandler mod = new PacketHandler(team.getName(), team.getPrefix(), team.getSuffix(), new ArrayList<String>(), 0);
-                    mod.sendToPlayer(p);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    // ==============================================================
+    // Below are private methods to construct a new Scoreboard packet
+    // ==============================================================
+    private void removeTeamPackets(FakeTeam fakeTeam) {
+        new PacketWrapper(fakeTeam.getName(), fakeTeam.getPrefix(), fakeTeam.getSuffix(), 1, new ArrayList<>()).send();
     }
 
-    /**
-     * Sends packets out to players to remove the given team
-     *
-     * @param team the team to remove
-     */
-    private static void sendPacketsRemoveTeam(TeamHandler team) {
-        if(!TEAMS.containsKey(team)) {
-            return;
-        }
-
-        try {
-            for (Player player : getOnline()) {
-                if (player != null) {
-                    PacketHandler mod = new PacketHandler(team.getName(), team.getPrefix(), team.getSuffix(), new ArrayList<String>(), 1);
-                    mod.sendToPlayer(player);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private boolean removePlayerFromTeamPackets(FakeTeam fakeTeam, String... players) {
+        return removePlayerFromTeamPackets(fakeTeam, Arrays.asList(players));
     }
 
-    /**
-     * Sends out packets to players to add the given player to the given team
-     *
-     * @param team the team to use
-     * @param playerName the player to add
-     */
-    private static void sendPacketsAddToTeam(TeamHandler team, String playerName) {
-        if(!TEAMS.containsKey(team)) {
-            return;
-        }
-
-        try {
-            for (Player player : getOnline()) {
-                if (player != null) {
-                    PacketHandler mod = new PacketHandler(team.getName(), Arrays.asList(playerName), 3);
-                    mod.sendToPlayer(player);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private boolean removePlayerFromTeamPackets(FakeTeam fakeTeam, List<String> players) {
+        new PacketWrapper(fakeTeam.getName(), 4, players).send();
+        fakeTeam.getMembers().removeAll(players);
+        return fakeTeam.getMembers().isEmpty();
     }
 
-    /**
-     * Sends out packets to players to remove the given player from the given
-     * team.
-     *
-     * @param team   the team to remove from
-     * @param playerName the player to remove
-     */
-    private static void sendPacketsRemoveFromTeam(TeamHandler team, String playerName) {
-        if(!TEAMS.containsKey(team)) {
-            return;
-        }
-
-        if(!TEAMS.get(team).contains(playerName)) {
-            return;
-        }
-
-        try {
-            for (Player player : getOnline()) {
-                if (player != null) {
-                    PacketHandler mod = new PacketHandler(team.getName(), Arrays.asList(playerName), 4);
-                    mod.sendToPlayer(player);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void addTeamPackets(FakeTeam fakeTeam) {
+        new PacketWrapper(fakeTeam.getName(), fakeTeam.getPrefix(), fakeTeam.getSuffix(), 0, fakeTeam.getMembers()).send();
     }
 
-    /**
-     * Clears out all teams and removes them for all the players. Called when
-     * the plugin is disabled.
-     */
-    public static void reset() {
-        Collection<TeamHandler> teams = new ArrayList<TeamHandler>(getTeams());
-        for (TeamHandler team : teams) {
-            removeTeam(team);
-        }
+    private void addPlayerToTeamPackets(FakeTeam fakeTeam, String player) {
+        new PacketWrapper(fakeTeam.getName(), 3, Collections.singletonList(player)).send();
     }
+
 }
