@@ -17,6 +17,7 @@ public class BirdCommand extends AbstractCommand {
 		super(plugin, Senders.PLAYER);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean handleCommand(CommandSender sender, Command cmd, String Commandlabel,
 			final String[] args) {
