@@ -56,7 +56,7 @@ public class EventListener implements Listener {
 
 			// Removes people with OOC muted
 			for (Player p : Bukkit.getOnlinePlayers()) {
-				if (!rpp.getOOC()) {
+				if (!rpp.isOOC()) {
 					event.getRecipients().remove(p);
 				}
 			}

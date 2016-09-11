@@ -24,7 +24,7 @@ public class RoleplayPlayer {
 	int age = 0;
 	String desc = "NONE";
 	Channel channel = Channel.RP;
-	Boolean OOC = false;
+	boolean OOC = false;
 	boolean online = true;
 	private Engine plugin;
 

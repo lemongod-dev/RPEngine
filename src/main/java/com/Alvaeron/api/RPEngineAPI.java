@@ -82,7 +82,7 @@ public class RPEngineAPI {
 		return getRoleplayPlayer(playerName).getChannel();
 	}
 	public static boolean getOOC(String playerName){
-		return getRoleplayPlayer(playerName).getOOC();
+		return getRoleplayPlayer(playerName).isOOC();
 	}
 	
 	public static void setRpName(String playerName, String name){

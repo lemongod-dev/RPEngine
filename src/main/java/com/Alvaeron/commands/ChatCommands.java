@@ -22,7 +22,7 @@ public class ChatCommands extends AbstractCommand {
 			return true;
 		}
 		if (cmd.getName().equalsIgnoreCase("ooc")) {
-			if (!rpp.getOOC()) {
+			if (!rpp.isOOC()) {
 				rpp.switchOOC();
 			}
 			rpp.setChannel(Channel.OOC);
@@ -34,7 +34,7 @@ public class ChatCommands extends AbstractCommand {
 			rpp.setChannel(Channel.RP);
 			rpp.setTag();
 			rpp.switchOOC();
-			if (!rpp.getOOC() && (rpp.getChannel() == Channel.OOC)) {
+			if (!rpp.isOOC() && (rpp.getChannel() == Channel.OOC)) {
 				rpp.setChannel(Channel.RP);
 			}
 			return true;
