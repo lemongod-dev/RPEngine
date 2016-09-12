@@ -1,8 +1,5 @@
 package com.Alvaeron.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -58,14 +55,11 @@ public class EventListener implements Listener {
 			}
 
 			// Removes people with OOC muted
-			List<Player> addList = new ArrayList<Player>();
-			for (Player p : event.getRecipients()) {
-				if (rpp.isOOC()) {
-					addList.add(p);
+			for (Player p : Bukkit.getOnlinePlayers()) {
+				if (!rpp.isOOC()) {
+					event.getRecipients().remove(p);
 				}
 			}
-			event.getRecipients().clear();
-			event.getRecipients().addAll(addList);
 
 			event.setMessage(message);
 			event.setFormat(format);
