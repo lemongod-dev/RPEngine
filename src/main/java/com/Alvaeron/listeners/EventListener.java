@@ -63,7 +63,7 @@ public class EventListener implements Listener {
 			event.setMessage(message);
 			event.setFormat(format);
 		}
-}
+	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRPChat(AsyncPlayerChatEvent event) {
