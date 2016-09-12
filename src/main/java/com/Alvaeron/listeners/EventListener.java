@@ -1,8 +1,5 @@
 package com.Alvaeron.listeners;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -35,8 +32,7 @@ public class EventListener implements Listener {
 		String message = event.getMessage();
 		String format = event.getFormat();
 		RoleplayPlayer rpp = Engine.manager.getPlayer(player.getUniqueId());
-
-		if (rpp.getChannel() == Channel.OOC) {
+		if(rpp.getChannel() == Channel.OOC){
 			if (plugin.vault) { // Confirms vault is installed before using it for prefixes
 				if (Engine.chat.getPlayerPrefix(player) != null) {
 					if (!Engine.chat.getPlayerPrefix(player).equals("")) {
@@ -58,19 +54,16 @@ public class EventListener implements Listener {
 			}
 
 			// Removes people with OOC muted
-			List<Player> addList = new ArrayList<Player>();
 			for (Player p : event.getRecipients()) {
-				if (rpp.isOOC()) {
-					addList.add(p);
+				if (!Engine.manager.getPlayer(p.getUniqueId()).isOOC()) {
+					event.getRecipients().remove(p);
 				}
 			}
-			event.getRecipients().clear();
-			event.getRecipients().addAll(addList);
 
 			event.setMessage(message);
 			event.setFormat(format);
 		}
-	}
+}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onRPChat(AsyncPlayerChatEvent event) {
