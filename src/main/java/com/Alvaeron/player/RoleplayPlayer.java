@@ -65,7 +65,6 @@ public class RoleplayPlayer {
 
 	public void setRace(String race) {
 		this.race = race;
-		Engine.card.sendJson(getPlayer(), "{text:\"Click to show your card\", color:\"aqua\",hoverEvent:{action:show_text,value:{text:\"Click to show your card\",color:\"aqua\"}},clickEvent:{action:\"run_command\",value:\"/card\"}}");
 		Engine.mm.setStringField(uuid, "race", race);
 		setTag();
 	}
