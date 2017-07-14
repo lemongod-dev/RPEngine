@@ -3,15 +3,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.Alvaeron</groupId>
 	<artifactId>RPEngine</artifactId>
-	<version>4.4.0</version>
+	<version>4.4.1</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<repositories>
 		<repository>
-			<id>vault-repo</id>
-			<url>http://nexus.hc.to/content/repositories/pub_releases</url>
-		</repository>
+        	<id>natrolite-repo</id>
+        	<url>https://repo.natrolite.org/repository/maven-public/</url>
+    	</repository>
 		<repository>
 			<id>dhmc-repo</id>
 			<url>http://dhmc.us:8081/nexus/content/repositories/public/</url>
@@ -22,12 +22,12 @@
 		</repository>
 	</repositories>
 	<dependencies>
-        <dependency>
-            <groupId>net.milkbowl.vault</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.6</version>
-            <scope>provided</scope>
-        </dependency>
+	    <dependency>
+	        <groupId>org.natrolite</groupId>
+	        <artifactId>vault-api</artifactId>
+	        <version>1.6.1</version>
+	        <scope>provided</scope>
+	    </dependency>
 		<dependency>
 	        <groupId>org.spigotmc</groupId>
 	        <artifactId>spigot-api</artifactId>
