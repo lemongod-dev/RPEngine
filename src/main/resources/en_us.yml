@@ -4,6 +4,7 @@ title-name: "&f[&6RPEnginef4]"
 player-only: "Sorry but that can only be run by a player!"
 must-be-number: "&cError: &fPlease use a number not a word!."
 no-permissions: "&cError: &fYou don't have permission for that!"
+chat-disabled: "&cError: &fChat functionality disabled by admin"
 # %v = version number
 version: "&6Currently running version: &f %v."
 reload: "&6Plugin reloaded!"

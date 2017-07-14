@@ -11,6 +11,7 @@ public enum Lang {
     PLAYER_ONLY("player-only", "Sorry but that can only be run by a player!"),
     NO_PERMS("no-permissions", "&cError: &fYou don't have permission for that!"),
     MUST_BE_NUMBER("must-be-number", "&cError: &fPlease use a number not a word!."),
+    CHAT_DISABLED("chat-disabled", "&cError: &fChat functionality disabled by admin"),
     VERSION("version", "&6Currently running version: &f%v"),
     RELOAD("reload", "&6Plugin reloaded!"),
     RP_JOIN("rp-join", "&eYou are now chatting in &f: RP"),

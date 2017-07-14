@@ -16,7 +16,7 @@ import com.Alvaeron.player.RoleplayPlayer.Channel;
 
 public class EventListener implements Listener {
 	private Engine plugin;
-	private boolean chatEnabled = true;
+	public boolean chatEnabled = true;
 
 	public EventListener(Engine plugin) {
 		this.plugin = plugin;
