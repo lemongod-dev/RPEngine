@@ -14,6 +14,7 @@ mysql:
 debug: false
 
 #ChatSettings
+chatEnabled: true
 rpRange: 35
 whisperRange: 5
 shoutRange: 50

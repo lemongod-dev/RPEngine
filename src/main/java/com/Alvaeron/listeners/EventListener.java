@@ -16,9 +16,11 @@ import com.Alvaeron.player.RoleplayPlayer.Channel;
 
 public class EventListener implements Listener {
 	private Engine plugin;
+	private boolean chatEnabled = true;
 
 	public EventListener(Engine plugin) {
 		this.plugin = plugin;
+		this.chatEnabled = plugin.getConfig().getBoolean("chatEnabled", true);
 	}
 
 	@EventHandler
@@ -27,7 +29,11 @@ public class EventListener implements Listener {
 		if (event.isCancelled()) {
 			return;
 		}
-
+		if(!chatEnabled) 
+		{
+			return;
+		}
+		
 		Player player = event.getPlayer();
 		String message = event.getMessage();
 		String format = event.getFormat();
@@ -72,7 +78,11 @@ public class EventListener implements Listener {
 		if (event.isCancelled()) {
 			return;
 		}
-
+		if(!chatEnabled) 
+		{
+			return;
+		}
+		
 		Player player = event.getPlayer();
 		String message = event.getMessage();
 		String format = event.getFormat();

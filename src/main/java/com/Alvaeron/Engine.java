@@ -71,6 +71,7 @@ public class Engine extends JavaPlugin {
 		this.getServer().getPluginManager().registerEvents(Engine.listener, this);
 		loadCommands();
 		this.saveDefaultConfig();
+		Engine.mm.OnEnable();
 		Engine.mm.initDatabase();
 		// On plugin reload, make sure that all online players are cached
 		for (Player pl : Bukkit.getOnlinePlayers()) {
