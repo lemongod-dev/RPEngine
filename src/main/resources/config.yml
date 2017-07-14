@@ -1,6 +1,6 @@
 #Database type, either sqlite or mysql
 databasetype: sqlite
-table-prefix: org_
+table-prefix: rpen_
 
 #MySQL Connection settings, only needed when databasetype is set to mysql
 mysql:
