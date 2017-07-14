@@ -22,6 +22,7 @@ import com.Alvaeron.commands.RollCommand;
 import com.Alvaeron.commands.SpawnPointCommand;
 import com.Alvaeron.listeners.EventListener;
 import com.Alvaeron.nametags.NametagManager;
+import com.Alvaeron.nametags.Utils;
 import com.Alvaeron.player.PlayerManager;
 import com.Alvaeron.utils.Card;
 import com.Alvaeron.utils.Lang;
@@ -40,6 +41,7 @@ public class Engine extends JavaPlugin {
 	public static Card card = null;
 	public static Engine rpEngine = null;
 	public static NametagManager nametags = null;
+	public static Utils utils = null;
 	public static YamlConfiguration LANG;
 	public static File LANG_FILE;
 
@@ -63,6 +65,7 @@ public class Engine extends JavaPlugin {
 		card = new Card(this);
 		rpEngine = this;
 		nametags = new NametagManager(this);
+		utils = new Utils(this);
 
 		this.getServer().getPluginManager().registerEvents(manager, this);
 		this.getServer().getPluginManager().registerEvents(Engine.listener, this);
@@ -143,7 +146,9 @@ public class Engine extends JavaPlugin {
 						Lang.setFile(defConfig);
 					}
 				} catch (IOException e) {
-					e.printStackTrace(); // So they notice
+					if(Engine.utils.sendDebug()){
+						e.printStackTrace();
+					}
 					getLogger().severe("[RPEngine] Couldn't create language file.");
 					getLogger().severe("[RPEngine] This is a fatal error. Now disabling");
 					this.setEnabled(false); // Without it loaded, we can't send them messages
@@ -152,7 +157,9 @@ public class Engine extends JavaPlugin {
 						try {
 							defLangStream.close();
 						} catch (IOException e) {
-							e.printStackTrace();
+							if(Engine.utils.sendDebug()){
+								e.printStackTrace();
+							}
 						}
 					}
 				}
@@ -160,7 +167,9 @@ public class Engine extends JavaPlugin {
 					try {
 						out.close();
 					} catch (IOException e) {
-						e.printStackTrace();
+						if(Engine.utils.sendDebug()){
+							e.printStackTrace();
+						}
 					}
 
 				}
@@ -180,7 +189,9 @@ public class Engine extends JavaPlugin {
 		} catch (IOException e) {
 			getLogger().log(Level.WARNING, "RPEngine: Failed to save lang.yml.");
 			getLogger().log(Level.WARNING, "RPEngine: Report this stack trace to a tech.");
-			e.printStackTrace();
+			if(Engine.utils.sendDebug()){
+				e.printStackTrace();
+			}
 		}
 	}
 	public void debug(String message) {
@@ -198,5 +209,8 @@ public class Engine extends JavaPlugin {
 			setupPermissions();
 			vault = true;
 		}
+	}
+	public void disablePlugin(){
+		this.setEnabled(false);
 	}
 }

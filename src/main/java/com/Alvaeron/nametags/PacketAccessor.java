@@ -3,6 +3,8 @@ package com.Alvaeron.nametags;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import com.Alvaeron.Engine;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -61,7 +63,9 @@ class PacketAccessor {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+			if(Engine.utils.sendDebug()){
+				e.printStackTrace();
+			}
         }
     }
 
@@ -83,7 +87,9 @@ class PacketAccessor {
         try {
             return packetClass.newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
+			if(Engine.utils.sendDebug()){
+				e.printStackTrace();
+			}
             return null;
         }
     }
@@ -100,7 +106,9 @@ class PacketAccessor {
             Object connection = playerConnection.get(nmsPlayer);
             sendPacket.invoke(connection, packet);
         } catch (Exception e) {
-            e.printStackTrace();
+			if(Engine.utils.sendDebug()){
+				e.printStackTrace();
+			}
         }
     }
 

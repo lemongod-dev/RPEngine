@@ -1,9 +1,14 @@
-#MySQL settings
-host: localhost
-user: mc
-password: password
-database: minecraft
-port: 3306
+#Database type, either sqlite or mysql
+databasetype: sqlite
+table-prefix: org_
+
+#MySQL Connection settings, only needed when databasetype is set to mysql
+mysql:
+  host: localhost
+  user: root
+  password: 1234
+  database: minecraft
+  port: 3306
 
 #Debug
 debug: false
