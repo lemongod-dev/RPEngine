@@ -16,6 +16,8 @@ class PacketAccessor {
     static Field PARAM_INT;
     static Field PACK_OPTION;
     static Field DISPLAY_NAME;
+    static Field PUSH;
+    static Field VISIBILITY;
 
     private static Method getHandle;
     private static Method sendPacket;
@@ -24,17 +26,16 @@ class PacketAccessor {
     private static Class<?> packetClass;
 
     static {
+
         try {
             String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-            packetClass = Class.forName("net.minecraft.server." + version + ".PacketPlayOutScoreboardTeam");
-
-            Class<?> typeNMSPlayer = Class.forName("net.minecraft.server." + version + ".EntityPlayer");
             Class<?> typeCraftPlayer = Class.forName("org.bukkit.craftbukkit." + version + ".entity.CraftPlayer");
-            Class<?> typePlayerConnection = Class.forName("net.minecraft.server." + version + ".PlayerConnection");
             getHandle = typeCraftPlayer.getMethod("getHandle");
+            packetClass = Class.forName("net.minecraft.server." + version + ".PacketPlayOutScoreboardTeam");
+            Class<?> typeNMSPlayer = Class.forName("net.minecraft.server." + version + ".EntityPlayer");
+            Class<?> typePlayerConnection = Class.forName("net.minecraft.server." + version + ".PlayerConnection");
             playerConnection = typeNMSPlayer.getField("playerConnection");
             sendPacket = typePlayerConnection.getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet"));
-
             PacketData currentVersion = null;
             for (PacketData packetData : PacketData.values()) {
                 if (version.contains(packetData.name())) {
@@ -50,10 +51,26 @@ class PacketAccessor {
                 PARAM_INT = getNMS(currentVersion.getParamInt());
                 PACK_OPTION = getNMS(currentVersion.getPackOption());
                 DISPLAY_NAME = getNMS(currentVersion.getDisplayName());
+
+                if (isPushVersion(version)) {
+                    PUSH = getNMS(currentVersion.getPush());
+                }
+
+                if (isVisibilityVersion(version)) {
+                    VISIBILITY = getNMS(currentVersion.getVisibility());
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean isPushVersion(String version) {
+        return Integer.parseInt(version.split("_")[1]) >= 9;
+    }
+
+    private static boolean isVisibilityVersion(String version) {
+        return Integer.parseInt(version.split("_")[1]) >= 8;
     }
 
     private static Field getNMS(String path) throws Exception {
@@ -71,13 +88,13 @@ class PacketAccessor {
         }
     }
 
-    public static void sendPacket(Collection<? extends Player> players, Object packet) {
+    static void sendPacket(Collection<? extends Player> players, Object packet) {
         for (Player player : players) {
             sendPacket(player, packet);
         }
     }
 
-    public static void sendPacket(Player player, Object packet) {
+    static void sendPacket(Player player, Object packet) {
         try {
             Object nmsPlayer = getHandle.invoke(player);
             Object connection = playerConnection.get(nmsPlayer);

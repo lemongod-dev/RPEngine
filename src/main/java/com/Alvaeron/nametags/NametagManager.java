@@ -2,7 +2,6 @@ package com.Alvaeron.nametags;
 
 import com.Alvaeron.Engine;
 import lombok.AllArgsConstructor;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -15,22 +14,6 @@ public class NametagManager {
     private final HashMap<String, FakeTeam> TEAMS = new HashMap<>();
     private final HashMap<String, FakeTeam> CACHED_FAKE_TEAMS = new HashMap<>();
     private Engine plugin;
-
-    /**
-     * This is a special method to sort nametags in
-     * the tablist. It takes a priority and converts
-     * it to an alphabetic representation to force a
-     * specific sort.
-     *
-     * @param input the sort priority
-     * @return the team name
-     */
-    private String getNameFromInput(int input) {
-        if (input < 0) return null;
-        String letter = String.valueOf((char) ((input / 13) + 65));
-        int repeat = input % 13 + 1;
-        return StringUtils.repeat(letter, repeat);
-    }
 
     /**
      * Gets the current team given a prefix and suffix
@@ -52,7 +35,7 @@ public class NametagManager {
      * we do NOT change that.
      */
     @SuppressWarnings("deprecation")
-	private void addPlayerToTeam(String player, String prefix, String suffix, int sortPriority) {
+	private void addPlayerToTeam(String player, String prefix, String suffix, int sortPriority, boolean playerTag) {
         FakeTeam previous = getFakeTeam(player);
 
         if (previous != null && previous.isSimilar(prefix, suffix)) {
@@ -67,7 +50,7 @@ public class NametagManager {
             joining.addMember(player);
             plugin.debug("Using existing team for " + player);
         } else {
-            joining = new FakeTeam(prefix, suffix, getNameFromInput(sortPriority));
+            joining = new FakeTeam(prefix, suffix, sortPriority, playerTag);
             joining.addMember(player);
             TEAMS.put(joining.getName(), joining);
             addTeamPackets(joining);
@@ -137,7 +120,11 @@ public class NametagManager {
     }
 
     void setNametag(String player, String prefix, String suffix, int sortPriority) {
-        addPlayerToTeam(player, prefix != null ? prefix : "", suffix != null ? suffix : "", sortPriority);
+        setNametag(player, prefix, suffix, sortPriority, false);
+    }
+
+    void setNametag(String player, String prefix, String suffix, int sortPriority, boolean playerTag) {
+        addPlayerToTeam(player, prefix != null ? prefix : "", suffix != null ? suffix : "", sortPriority, playerTag);
     }
 
     public void sendTeams(Player player) {

@@ -1,12 +1,9 @@
 package com.Alvaeron.nametags;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class PacketWrapper {
@@ -31,6 +28,10 @@ public class PacketWrapper {
                 PacketAccessor.PREFIX.set(packet, prefix);
                 PacketAccessor.SUFFIX.set(packet, suffix);
                 PacketAccessor.PACK_OPTION.set(packet, 1);
+
+                if (PacketAccessor.VISIBILITY != null) {
+                    PacketAccessor.VISIBILITY.set(packet, "always");
+                }
 
                 if (param == 0) {
                     ((Collection) PacketAccessor.MEMBERS.get(packet)).addAll(players);
@@ -61,20 +62,11 @@ public class PacketWrapper {
     }
 
     public void send() {
-        PacketAccessor.sendPacket(getOnline(), packet);
+        PacketAccessor.sendPacket(Utils.getOnline(), packet);
     }
 
     public void send(Player player) {
         PacketAccessor.sendPacket(player, packet);
-    }
-    public static List<Player> getOnline() {
-        List<Player> list = new ArrayList<>();
-
-        for (World world : Bukkit.getWorlds()) {
-            list.addAll(world.getPlayers());
-        }
-
-        return Collections.unmodifiableList(list);
     }
 
 }

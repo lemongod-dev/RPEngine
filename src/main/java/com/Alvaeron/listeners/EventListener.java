@@ -135,6 +135,7 @@ public class EventListener implements Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		long maxHealth = 20;
