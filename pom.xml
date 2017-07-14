@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.Alvaeron</groupId>
 	<artifactId>RPEngine</artifactId>
-	<version>4.3.7</version>
+	<version>4.4.0</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -29,15 +29,15 @@
             <scope>provided</scope>
         </dependency>
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>1.10.2-R0.1-SNAPSHOT</version>
-			<scope>provided</scope>
-		</dependency>
+	        <groupId>org.spigotmc</groupId>
+	        <artifactId>spigot-api</artifactId>
+	        <version>1.12-R0.1-SNAPSHOT</version>
+	        <scope>provided</scope>
+     	</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.14.8</version>
+			<version>1.16.18</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
