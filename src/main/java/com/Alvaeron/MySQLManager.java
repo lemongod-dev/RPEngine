@@ -33,7 +33,7 @@ public class MySQLManager {
 	}
 	
 	public void OnEnable(){
-		if(plugin.getConfig().contains("dbType")){
+		if(plugin.getConfig().contains("databasetype")){
 			if(plugin.getConfig().getString("databasetype").equalsIgnoreCase("mysql")){
 				boolean mysqlLegit = true;
 				if(plugin.getConfig().contains("mysql.host")){
