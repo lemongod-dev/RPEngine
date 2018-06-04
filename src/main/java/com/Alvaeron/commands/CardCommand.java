@@ -22,6 +22,7 @@ public class CardCommand extends AbstractCommand {
 		super(plugin, Senders.PLAYER);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean handleCommand(CommandSender sender, Command cmd, String Commandlabel, String[] args) {
 		// Name Field

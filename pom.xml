@@ -3,18 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.Alvaeron</groupId>
 	<artifactId>RPEngine</artifactId>
-	<version>4.5.3</version>
+	<version>4.5.4</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<repositories>
 		<repository>
-        	<id>natrolite-repo</id>
-        	<url>https://repo.natrolite.org/repository/maven-public/</url>
-    	</repository>
-		<repository>
-			<id>dhmc-repo</id>
-			<url>http://dhmc.us:8081/nexus/content/repositories/public/</url>
+			<id>vault-repo</id>
+			<url>http://nexus.hc.to/content/repositories/pub_releases</url>
 		</repository>
 		<repository>
 			<id>spigot-repo</id>
@@ -22,22 +18,22 @@
 		</repository>
 	</repositories>
 	<dependencies>
-	    <dependency>
-	        <groupId>org.natrolite</groupId>
-	        <artifactId>vault-api</artifactId>
-	        <version>1.6.1</version>
-	        <scope>provided</scope>
-	    </dependency>
+		<dependency>
+            <groupId>net.milkbowl.vault</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.6</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 	        <groupId>org.spigotmc</groupId>
 	        <artifactId>spigot-api</artifactId>
-	        <version>1.12-R0.1-SNAPSHOT</version>
+	        <version>1.12.2-R0.1-SNAPSHOT</version>
 	        <scope>provided</scope>
      	</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.16.18</version>
+			<version>1.16.22</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
